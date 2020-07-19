@@ -3,7 +3,7 @@ package sforeader
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
+	"errors"
 	"os"
 )
 
@@ -11,6 +11,13 @@ import (
 const FormatUtf8SM = 4
 const FormatUtf8 = 516
 const FormatInteger = 1028
+
+// Error types
+var errInvalidMagic = errors.New("PSF header invalid")
+var errInvalidVersion = errors.New("version invalid")
+var errInvalidKeyOffset = errors.New("key table offset invalid")
+var errInvalidDataOffset = errors.New("data table offset invalid")
+var errInvalidIndexEntries = errors.New("index table entries invalid")
 
 // Expected SFO header format
 type header struct {
@@ -33,30 +40,30 @@ type indexTable struct {
 // Data structure of individual entries
 type Data struct {
 	Data   []byte
-	Format uint16
+	Format uint16 // see consts
 }
 
 // Basic validation. Expanding scope beyond Vita would probably require changes here.
 // This only verifies the header is valid and doesn't go beyond it.
 func (h *header) validate() error {
 	if h.Magic != 1179865088 {
-		return fmt.Errorf("PSF header invalid")
+		return errInvalidMagic
 	}
 	if h.Version != 257 {
-		return fmt.Errorf("version invalid")
+		return errInvalidVersion
 	}
 	tmp := make([]byte, 4)
 	binary.LittleEndian.PutUint32(tmp, h.KeyTableOffset)
 	if bytes.Compare(tmp[2:4], []byte{0, 0}) != 0 {
-		return fmt.Errorf("key table offset invalid")
+		return errInvalidKeyOffset
 	}
 	binary.LittleEndian.PutUint32(tmp, h.DataTableOffset)
 	if bytes.Compare(tmp[2:4], []byte{0, 0}) != 0 {
-		return fmt.Errorf("data table offset invalid")
+		return errInvalidDataOffset
 	}
 	binary.LittleEndian.PutUint32(tmp, h.IndexTableEntries)
 	if bytes.Compare(tmp[1:4], []byte{0, 0, 0}) != 0 {
-		return fmt.Errorf("index table entries invalid")
+		return errInvalidIndexEntries
 	}
 	return nil
 }
