@@ -8,8 +8,14 @@ import (
 )
 
 // Constants defining data types
+
+// FormatUtf8SM UTF-8 Special Mode format (not null terminated)
 const FormatUtf8SM = 4
+
+// FormatUtf8 UTF-8 format
 const FormatUtf8 = 516
+
+// FormatInteger Int format
 const FormatInteger = 1028
 
 // Error types
@@ -18,6 +24,9 @@ var errInvalidVersion = errors.New("version invalid")
 var errInvalidKeyOffset = errors.New("key table offset invalid")
 var errInvalidDataOffset = errors.New("data table offset invalid")
 var errInvalidIndexEntries = errors.New("index table entries invalid")
+
+var hdrMagic = int32(binary.LittleEndian.Uint32([]byte{0, 0x50, 0x53, 0x46}))
+var hdrVersion = int32(binary.LittleEndian.Uint32([]byte{1, 1, 0, 0}))
 
 // Expected SFO header format
 type header struct {
@@ -31,7 +40,7 @@ type header struct {
 // Index table listing placement and format of entries
 type indexTable struct {
 	KeyTableOffset  uint16
-	ParamFormat     uint16 // see consts
+	ParamFormat     uint16 // One of FormatUtf8/FormatUtf8SM/FormatInteger
 	ParamLength     uint32
 	ParamMaxLength  uint32
 	DataTableOffset uint32
@@ -40,16 +49,16 @@ type indexTable struct {
 // Data structure of individual entries
 type Data struct {
 	Data   []byte
-	Format uint16 // see consts
+	Format uint16 // One of FormatUtf8/FormatUtf8SM/FormatInteger
 }
 
 // Basic validation. Expanding scope beyond Vita would probably require changes here.
 // This only verifies the header is valid and doesn't go beyond it.
 func (h *header) validate() error {
-	if h.Magic != 1179865088 {
+	if h.Magic != hdrMagic {
 		return errInvalidMagic
 	}
-	if h.Version != 257 {
+	if h.Version != hdrVersion {
 		return errInvalidVersion
 	}
 	tmp := make([]byte, 4)
