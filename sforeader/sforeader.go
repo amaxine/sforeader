@@ -8,15 +8,11 @@ import (
 )
 
 // Constants defining data types
-
-// FormatUtf8SM UTF-8 Special Mode format (not null terminated)
-const FormatUtf8SM = 4
-
-// FormatUtf8 UTF-8 format
-const FormatUtf8 = 516
-
-// FormatInteger Int format
-const FormatInteger = 1028
+const (
+	FormatUtf8SM  = 4
+	FormatUtf8    = 516 // Null terminated string
+	FormatInteger = 1028
+)
 
 // Error types
 var errInvalidMagic = errors.New("PSF header invalid")
@@ -49,6 +45,8 @@ type indexTable struct {
 // Data structure of individual entries
 type Data struct {
 	Data   []byte
+	Len    uint32
+	MaxLen uint32
 	Format uint16 // One of FormatUtf8/FormatUtf8SM/FormatInteger
 }
 
