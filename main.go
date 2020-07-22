@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/binary"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -22,7 +24,9 @@ func main() {
 		jsonMap := make(map[string]string)
 		for k, v := range dataMap {
 			if v.Format == sforeader.FormatInteger {
-				jsonMap[k] = fmt.Sprintf("%v", v.Data)
+				jsonMap[k] = fmt.Sprintf("%v", int(binary.LittleEndian.Uint32(v.Data)))
+			} else if v.Format == sforeader.FormatUtf8 {
+				jsonMap[k] = string(bytes.Trim(v.Data, "\x00"))
 			} else {
 				jsonMap[k] = string(v.Data)
 			}

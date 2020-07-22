@@ -132,15 +132,13 @@ func ParseFile(filename string) (map[string]Data, error) {
 			return nil, err
 		}
 
-		value := make([]byte, int(index[i].ParamMaxLength))
+		value := make([]byte, int(index[i].ParamLength))
 		err = binary.Read(f, binary.LittleEndian, value)
 		if err != nil {
 			return nil, err
 		}
-		// We read until ParamMaxLength, but we still want to trim the emptiness.
-		// Would reading until ParamLength make more sense? Maybe, but just being safe.
-		value = bytes.Trim(value, "\x00")
-		dataMap[string(key)] = Data{Data: value, Format: index[i].ParamFormat}
+
+		dataMap[string(key)] = Data{Data: value, Len: index[i].ParamLength, MaxLen: index[i].ParamMaxLength, Format: index[i].ParamFormat}
 	}
 
 	return dataMap, nil
