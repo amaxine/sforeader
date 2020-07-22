@@ -12,7 +12,7 @@ import (
 
 func main() {
 	file := flag.String("file", "param.sfo", "SFO file to parse")
-	jsondump := flag.Bool("jsondump", false, "Dump all data as json")
+	jsondump := flag.Bool("jsondump", true, "Dump all data as json")
 	flag.Parse()
 
 	dataMap, err := sforeader.ParseFile(*file)
